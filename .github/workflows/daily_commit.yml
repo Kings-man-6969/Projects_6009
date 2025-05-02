@@ -1,37 +1,43 @@
-name: Prashant Commit daily
+name: Prashant Commits
 
 on:
   schedule:
     - cron: '0 0 * * *'
 
 jobs:
-  commit:
+  random-commits:
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
       with:
-        ref: main 
+        ref: main
 
-    - name: Create file and commit
+    - name: Make random commits
       run: |
+        git config --global user.name "Kings-man-6009"
+        git config --global user.email "2k23.csaiml2310693@gmail.com"
+
         FILE="commit_number.md"
         if [ ! -f "$FILE" ]; then
           echo "Hello, my name is Prashant Mishra" > "$FILE"
           echo "commit number: 1" >> "$FILE"
-        else
-          CURRENT_COUNT=$(grep -oP 'commit number: \K\d+' "$FILE")
-          if [ -z "$CURRENT_COUNT" ]; then
-            CURRENT_COUNT=0
-          fi
-          NEXT_COUNT=$((CURRENT_COUNT + 1))
-          sed -i "/commit number: /c\commit number: $NEXT_COUNT" "$FILE"
         fi
-        git config --global user.name "Kings-man-6009"
-        git config --global user.email "2k23.csaiml2310693@gmail.com"
-        git add "$FILE"
-        git commit -m "Hello, my name is Prashant Mishra nice to meet you"
-        git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/beesou777/mean-commit.git
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+        COUNT=$(shuf -i 1-5 -n 1)
+        echo "Will commit $COUNT times today."
+
+        for i in $(seq 1 $COUNT); do
+          CURRENT_COUNT=$(grep -oP 'commit number: \K\d+' "$FILE")
+          [ -z "$CURRENT_COUNT" ] && CURRENT_COUNT=0
+          NEXT_COUNT=$((CURRENT_COUNT + 1))
+          sed -i.bak "s/commit number: .*/commit number: $NEXT_COUNT/" "$FILE" && rm "$FILE.bak"
+          
+          git add "$FILE"
+          git commit -m "Random commit #$NEXT_COUNT - Hello, my name is Prashant Mishra"
+          git push origin main
+          
+          # Optional: wait a few seconds to simulate real work
+          sleep 5
+        done
