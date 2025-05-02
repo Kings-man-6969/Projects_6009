@@ -1,8 +1,8 @@
-name: Prashant Commits
+name: Prashant Random Commits
 
 on:
   schedule:
-    - cron: '0 0 * * *'
+    - cron: '0 0 * * *'  # Runs daily at 00:00 UTC
 
 jobs:
   random-commits:
@@ -13,11 +13,21 @@ jobs:
       uses: actions/checkout@v2
       with:
         ref: main
+        persist-credentials: false  # We'll use our own token below
 
-    - name: Make random commits
+    - name: Set up Git credentials
       run: |
         git config --global user.name "Kings-man-6009"
         git config --global user.email "2k23.csaiml2310693@gmail.com"
+
+    - name: Make random commits
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        # Wait for a random amount of time (1 to 720 minutes)
+        DELAY_MINUTES=$(shuf -i 1-720 -n 1)
+        echo "Waiting $DELAY_MINUTES minutes before starting commits..."
+        sleep $((DELAY_MINUTES * 60))
 
         FILE="commit_number.md"
         if [ ! -f "$FILE" ]; then
@@ -26,18 +36,22 @@ jobs:
         fi
 
         COUNT=$(shuf -i 1-5 -n 1)
-        echo "Will commit $COUNT times today."
+        echo "Will make $COUNT commits."
+
+        MESSAGES=("Let's go!" "Another day, another commit!" "Keep pushing 💪" "Code mode activated ⚡️" "Grinding commits 🛠️")
 
         for i in $(seq 1 $COUNT); do
           CURRENT_COUNT=$(grep -oP 'commit number: \K\d+' "$FILE")
           [ -z "$CURRENT_COUNT" ] && CURRENT_COUNT=0
           NEXT_COUNT=$((CURRENT_COUNT + 1))
           sed -i.bak "s/commit number: .*/commit number: $NEXT_COUNT/" "$FILE" && rm "$FILE.bak"
-          
+
+          RANDOM_INDEX=$((RANDOM % ${#MESSAGES[@]}))
+          COMMIT_MSG="Random commit #$NEXT_COUNT - ${MESSAGES[$RANDOM_INDEX]}"
           git add "$FILE"
-          git commit -m "Random commit #$NEXT_COUNT - Hello, my name is Prashant Mishra"
-          git push origin main
-          
-          # Optional: wait a few seconds to simulate real work
-          sleep 5
+          git commit -m "$COMMIT_MSG"
+
+          git push https://x-access-token:${GITHUB_TOKEN}@github.com/beesou777/mean-commit.git main
+
+          sleep 5  # Optional pause between commits
         done
