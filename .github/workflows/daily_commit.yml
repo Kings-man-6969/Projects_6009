@@ -2,11 +2,11 @@ name: Prashant Random Commits
 
 on:
   schedule:
-    - cron: '0 0 * * *'
-    - cron: '3 4 * * *'
-    - cron: '9 8 * * *'
-    - cron: '15 12 * * *'
-    - cron: '21 18 * * *'
+    - cron: '0 0 * * *'  # Randomly, early morning
+    - cron: '15 3 * * *'  # Early morning randomness
+    - cron: '30 6 * * *'  # Random start times
+    - cron: '45 9 * * *'  # Random mid-day start
+    - cron: '15 18 * * *'  # Random evening time
   workflow_dispatch:
     inputs:
       commit_count:
@@ -43,32 +43,59 @@ jobs:
       env:
         PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
       run: |
+        # Determine number of commits
         if [ "${{ github.event.inputs.commit_count }}" != "" ]; then
           COUNT=${{ github.event.inputs.commit_count }}
           echo "Manual trigger: making $COUNT commits."
         else
-          COUNT=$(shuf -i 1-5 -n 1)
-          echo "Scheduled run: randomly making $COUNT commits."
+          COUNT=$(shuf -i 1-3 -n 1)
+          echo "Scheduled run: making $COUNT commits."
         fi
 
-        MESSAGES=("Let's go!" "Another day, another commit!" "Keep pushing 💪" "Code mode activated ⚡️" "Grinding commits 🛠️")
+        # Realistic commit messages for human-like variations
+        MESSAGES=(
+          "Fix minor typo in README"
+          "Update project description"
+          "Refactor code for readability"
+          "Add more details to documentation"
+          "Update dependencies in package.json"
+          "Tweak layout of the homepage"
+          "Clean up commented-out code"
+          "Correct formatting issue in code"
+          "Add a new idea for feature implementation"
+          "Small fixes to text in main readme"
+        )
 
-        mkdir -p commits
+        # Create a list of files to modify
+        FILES=("README.md" "NOTES.md" "todo.txt" "index.html" "app.py")
+
+        # Directory for keeping commit logs and changes
+        mkdir -p commits .logs
 
         for i in $(seq 1 $COUNT); do
           TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-          RANDOM_INDEX=$(shuf -i 0-4 -n 1)
+          RANDOM_INDEX=$(shuf -i 0-9 -n 1)
           MESSAGE=${MESSAGES[$RANDOM_INDEX]}
-          
-          FILENAME="commits/commit_$TIMESTAMP.md"
-          echo "Commit made on: $(date)" > "$FILENAME"
-          echo "Message: $MESSAGE" >> "$FILENAME"
-          echo "Fun fact: $RANDOM" >> "$FILENAME"
 
-          git add "$FILENAME"
+          # Randomly select a file and modify it
+          FILE=${FILES[$(shuf -i 0-4 -n 1)]}
+          echo "# Commit Log - $(date)" >> "$FILE"
+          echo "Commit made on: $(date)" >> "$FILE"
+          echo "Message: $MESSAGE" >> "$FILE"
+          echo "Fun fact: $RANDOM" >> "$FILE"
+
+          # Commit the change
+          git add "$FILE"
           git commit -m "Random commit - $MESSAGE"
 
-          git push https://x-access-token:${PAT_TOKEN}@github.com/Kings-man-6969/Projects_6009.git main
-          sleep 5
+          # Log the commit for future reference
+          echo "$(date): $MESSAGE on $FILE" >> .logs/commit_log.txt
+
+          # Introduce random sleep intervals (more realistic)
+          SLEEP_TIME=$(shuf -i 5-25 -n 1)
+          echo "Sleeping for $SLEEP_TIME seconds..."
+          sleep $SLEEP_TIME
         done
 
+        # Push to the repository
+        git push https://x-access-token:${PAT_TOKEN}@github.com/Kings-man-6969/Projects_6009.git main
