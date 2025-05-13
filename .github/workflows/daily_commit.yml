@@ -2,32 +2,55 @@ name: Prashant Random Commits
 
 on:
   schedule:
-    - cron: '0 0 * * *'  # Runs daily at 00:00 UTC
+    - cron: '0 0 * * *'
+    - cron: '3 4 * * *'
+    - cron: '9 8 * * *'
+    - cron: '15 12 * * *'
+    - cron: '21 18 * * *'
+  workflow_dispatch:
+    inputs:
+      commit_count:
+        description: 'Number of commits to make'
+        required: false
+        default: ''
 
 jobs:
   random-commits:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Random chance to run (for scheduled runs only)
+      if: github.event_name == 'schedule'
+      run: |
+        SHOULD_RUN=$(shuf -i 0-1 -n 1)
+        if [ "$SHOULD_RUN" -eq 0 ]; then
+          echo "Randomly skipping this scheduled run."
+          exit 0
+        fi
+
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         ref: main
-        persist-credentials: false  # We'll use our own token below
+        persist-credentials: false
 
     - name: Set up Git credentials
       run: |
         git config --global user.name "Kings-man-6009"
         git config --global user.email "2k23.csaiml2310693@gmail.com"
 
-    - name: Make random commits
+    - name: Make commits
       env:
         PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
       run: |
-        # Wait for a random amount of time (1 to 720 minutes)
-        DELAY_MINUTES=$(shuf -i 1-720 -n 1)
-        echo "Waiting $DELAY_MINUTES minutes before starting commits..."
-        sleep $((DELAY_MINUTES * 60))
+        # Determine commit count
+        if [ "${{ github.event.inputs.commit_count }}" != "" ]; then
+          COUNT=${{ github.event.inputs.commit_count }}
+          echo "Manual trigger: making $COUNT commits."
+        else
+          COUNT=$(shuf -i 1-5 -n 1)
+          echo "Scheduled run: randomly making $COUNT commits."
+        fi
 
         FILE="commit_number.md"
         if [ ! -f "$FILE" ]; then
@@ -35,23 +58,19 @@ jobs:
           echo "commit number: 1" >> "$FILE"
         fi
 
-        COUNT=$(shuf -i 1-5 -n 1)
-        echo "Will make $COUNT commits."
-
         MESSAGES=("Let's go!" "Another day, another commit!" "Keep pushing 💪" "Code mode activated ⚡️" "Grinding commits 🛠️")
 
         for i in $(seq 1 $COUNT); do
-          CURRENT_COUNT=$(grep -oP 'commit number: \K\d+' "$FILE")
-          [ -z "$CURRENT_COUNT" ] && CURRENT_COUNT=0
+          CURRENT_COUNT=$(grep -oP 'commit number: \K\d+' "$FILE" || echo 0)
           NEXT_COUNT=$((CURRENT_COUNT + 1))
           sed -i.bak "s/commit number: .*/commit number: $NEXT_COUNT/" "$FILE" && rm "$FILE.bak"
 
-          RANDOM_INDEX=$((RANDOM % ${#MESSAGES[@]}))
+          RANDOM_INDEX=$(shuf -i 0-4 -n 1)
           COMMIT_MSG="Random commit #$NEXT_COUNT - ${MESSAGES[$RANDOM_INDEX]}"
           git add "$FILE"
           git commit -m "$COMMIT_MSG"
+          echo "Committed: $COMMIT_MSG"
 
           git push https://x-access-token:${PAT_TOKEN}@github.com/beesou777/mean-commit.git main
-
-          sleep 5  # Optional pause between commits
+          sleep 5
         done
