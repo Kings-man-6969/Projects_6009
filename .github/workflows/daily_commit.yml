@@ -68,7 +68,7 @@ jobs:
           git add "$FILENAME"
           git commit -m "Random commit - $MESSAGE"
 
-          git push https://x-access-token:${PAT_TOKEN}@github.com/beesou777/mean-commit.git main
+          git push https://x-access-token:${PAT_TOKEN}@github.com/Kings-man-6969/Project_6009.git main
           sleep 5
         done
 
