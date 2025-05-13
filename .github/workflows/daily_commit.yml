@@ -43,7 +43,6 @@ jobs:
       env:
         PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
       run: |
-        # Determine commit count
         if [ "${{ github.event.inputs.commit_count }}" != "" ]; then
           COUNT=${{ github.event.inputs.commit_count }}
           echo "Manual trigger: making $COUNT commits."
@@ -52,25 +51,24 @@ jobs:
           echo "Scheduled run: randomly making $COUNT commits."
         fi
 
-        FILE="commit_number.md"
-        if [ ! -f "$FILE" ]; then
-          echo "Hello, my name is Prashant Mishra" > "$FILE"
-          echo "commit number: 1" >> "$FILE"
-        fi
-
         MESSAGES=("Let's go!" "Another day, another commit!" "Keep pushing 💪" "Code mode activated ⚡️" "Grinding commits 🛠️")
 
+        mkdir -p commits
+
         for i in $(seq 1 $COUNT); do
-          CURRENT_COUNT=$(grep -oP 'commit number: \K\d+' "$FILE" || echo 0)
-          NEXT_COUNT=$((CURRENT_COUNT + 1))
-          sed -i.bak "s/commit number: .*/commit number: $NEXT_COUNT/" "$FILE" && rm "$FILE.bak"
-
+          TIMESTAMP=$(date +%Y%m%d_%H%M%S)
           RANDOM_INDEX=$(shuf -i 0-4 -n 1)
-          COMMIT_MSG="Random commit #$NEXT_COUNT - ${MESSAGES[$RANDOM_INDEX]}"
-          git add "$FILE"
-          git commit -m "$COMMIT_MSG"
-          echo "Committed: $COMMIT_MSG"
+          MESSAGE=${MESSAGES[$RANDOM_INDEX]}
+          
+          FILENAME="commits/commit_$TIMESTAMP.md"
+          echo "Commit made on: $(date)" > "$FILENAME"
+          echo "Message: $MESSAGE" >> "$FILENAME"
+          echo "Fun fact: $RANDOM" >> "$FILENAME"
 
-          git push https://x-access-token:${PAT_TOKEN}@github.com/kings-man-6969/Projects_6009.git main
+          git add "$FILENAME"
+          git commit -m "Random commit - $MESSAGE"
+
+          git push https://x-access-token:${PAT_TOKEN}@github.com/beesou777/mean-commit.git main
           sleep 5
         done
+
