@@ -22,7 +22,7 @@ jobs:
 
     - name: Make random commits
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
       run: |
         # Wait for a random amount of time (1 to 720 minutes)
         DELAY_MINUTES=$(shuf -i 1-720 -n 1)
@@ -51,7 +51,7 @@ jobs:
           git add "$FILE"
           git commit -m "$COMMIT_MSG"
 
-          git push https://x-access-token:${GITHUB_TOKEN}@github.com/beesou777/mean-commit.git main
+          git push https://x-access-token:${PAT_TOKEN}@github.com/beesou777/mean-commit.git main
 
           sleep 5  # Optional pause between commits
         done
