@@ -1970,3 +1970,7 @@ Fun fact: 32677
 Commit made on: Thu Nov 20 18:44:25 UTC 2025
 Message: Small fixes to text in main readme
 Fun fact: 13271
+# Commit Log - Fri Nov 21 09:51:50 UTC 2025
+Commit made on: Fri Nov 21 09:51:50 UTC 2025
+Message: Add more details to documentation
+Fun fact: 25383
